@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Trash2, Loader2, ArrowLeft, ImageIcon, Edit, X } from "lucide-react"
+import { Plus, Trash2, Loader2, ArrowLeft, ImageIcon } from "lucide-react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -21,19 +21,11 @@ export function ProductManagement({ shop, products: initialProducts }: ProductMa
   const router = useRouter()
   const [products, setProducts] = useState(initialProducts)
   const [isAdding, setIsAdding] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState<string | null>(null)
 
+  // New product form
   const [newProduct, setNewProduct] = useState({
-    name: "",
-    description: "",
-    price: "",
-    imageUrls: [] as string[],
-    videoUrl: "",
-  })
-
-  const [editForm, setEditForm] = useState({
     name: "",
     description: "",
     price: "",
@@ -58,12 +50,8 @@ export function ProductManagement({ shop, products: initialProducts }: ProductMa
         throw new Error(data.error || "Upload failed")
       }
 
-      if (productId === "edit" && editingProduct) {
-        setEditForm({
-          ...editForm,
-          imageUrls: [...editForm.imageUrls, data.url],
-        })
-      } else if (productId) {
+      if (productId) {
+        // Add to existing product
         const product = products.find((p) => p.id === productId)
         if (product) {
           const updatedProduct = {
@@ -73,6 +61,7 @@ export function ProductManagement({ shop, products: initialProducts }: ProductMa
           setProducts(products.map((p) => (p.id === productId ? updatedProduct : p)))
         }
       } else {
+        // Add to new product
         setNewProduct({
           ...newProduct,
           imageUrls: [...newProduct.imageUrls, data.url],
@@ -120,51 +109,6 @@ export function ProductManagement({ shop, products: initialProducts }: ProductMa
     }
   }
 
-  const handleEditProduct = async () => {
-    if (!editingProduct || !editForm.name || !editForm.price) {
-      alert("Please fill in product name and price")
-      return
-    }
-
-    setIsSaving(true)
-    const supabase = createClient()
-
-    try {
-      const { error } = await supabase
-        .from("products")
-        .update({
-          name: editForm.name,
-          description: editForm.description,
-          price: Number.parseFloat(editForm.price),
-          image_urls: editForm.imageUrls,
-          video_url: editForm.videoUrl || null,
-        })
-        .eq("id", editingProduct.id)
-
-      if (error) throw error
-
-      setEditingProduct(null)
-      router.refresh()
-    } catch (error) {
-      console.error("Error updating product:", error)
-      alert("Failed to update product. Please try again.")
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const startEditing = (product: Product) => {
-    setEditingProduct(product)
-    setEditForm({
-      name: product.name,
-      description: product.description || "",
-      price: product.price.toString(),
-      imageUrls: product.image_urls || [],
-      videoUrl: product.video_url || "",
-    })
-    setIsAdding(false)
-  }
-
   const handleDeleteProduct = async (productId: string) => {
     if (!confirm("Are you sure you want to delete this product?")) return
 
@@ -181,7 +125,7 @@ export function ProductManagement({ shop, products: initialProducts }: ProductMa
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
         <Link href="/dashboard">
           <Button variant="ghost" className="mb-6 gap-2">
@@ -194,7 +138,7 @@ export function ProductManagement({ shop, products: initialProducts }: ProductMa
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">Manage Products</h1>
-            <p className="text-muted-foreground">{shop.name}</p>
+            <p className="text-gray-600 dark:text-gray-400">{shop.name}</p>
           </div>
           <Link href={`/shop/${shop.id}/products`}>
             <Button variant="outline" className="w-full sm:w-auto bg-transparent">
@@ -203,111 +147,7 @@ export function ProductManagement({ shop, products: initialProducts }: ProductMa
           </Link>
         </div>
 
-        {editingProduct && (
-          <Card className="mb-6">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Edit Product</CardTitle>
-                <Button variant="ghost" size="icon" onClick={() => setEditingProduct(null)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Product Name *</Label>
-                <Input
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder="Enter product name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  placeholder="Describe your product..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Price (UGX) *</Label>
-                <Input
-                  type="number"
-                  value={editForm.price}
-                  onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
-                  placeholder="0"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Images</Label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {editForm.imageUrls.map((url, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={url || "/placeholder.svg"}
-                        alt=""
-                        className="h-16 w-16 sm:h-20 sm:w-20 rounded object-cover"
-                      />
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="absolute -top-2 -right-2 h-6 w-6"
-                        onClick={() =>
-                          setEditForm({ ...editForm, imageUrls: editForm.imageUrls.filter((_, i) => i !== index) })
-                        }
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-                <Input
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml,image/bmp,image/tiff"
-                  onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], "edit")}
-                  disabled={isUploading === "edit"}
-                />
-                {isUploading === "edit" && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Uploading...
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Video URL (optional)</Label>
-                <Input
-                  value={editForm.videoUrl}
-                  onChange={(e) => setEditForm({ ...editForm, videoUrl: e.target.value })}
-                  placeholder="https://youtube.com/... or https://tiktok.com/..."
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={handleEditProduct} disabled={isSaving} className="w-full sm:w-auto">
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save Changes"
-                  )}
-                </Button>
-                <Button variant="outline" onClick={() => setEditingProduct(null)} className="w-full sm:w-auto">
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
+        {/* Add New Product */}
         {isAdding ? (
           <Card className="mb-6">
             <CardHeader>
@@ -397,21 +237,20 @@ export function ProductManagement({ shop, products: initialProducts }: ProductMa
             </CardContent>
           </Card>
         ) : (
-          !editingProduct && (
-            <Button onClick={() => setIsAdding(true)} className="mb-6 gap-2 w-full sm:w-auto">
-              <Plus className="h-4 w-4" />
-              Add Product
-            </Button>
-          )
+          <Button onClick={() => setIsAdding(true)} className="mb-6 gap-2 w-full sm:w-auto">
+            <Plus className="h-4 w-4" />
+            Add Product
+          </Button>
         )}
 
+        {/* Products List */}
         <div className="space-y-4">
           {products.length === 0 ? (
             <Card className="text-center py-16">
               <CardContent>
-                <ImageIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <ImageIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2">No products yet</h3>
-                <p className="text-muted-foreground mb-6">Add your first product to start selling</p>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Add your first product to start selling</p>
               </CardContent>
             </Card>
           ) : (
@@ -429,30 +268,20 @@ export function ProductManagement({ shop, products: initialProducts }: ProductMa
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-lg">{product.name}</h3>
                       {product.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{product.description}</p>
                       )}
                       <p className="text-lg font-bold mt-2">
                         {product.currency} {product.price.toLocaleString()}
                       </p>
                     </div>
-                    <div className="flex gap-2 self-start sm:self-center">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => startEditing(product)}
-                        className="flex-shrink-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleDeleteProduct(product.id)}
-                        className="flex-shrink-0"
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleDeleteProduct(product.id)}
+                      className="self-start sm:self-center"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

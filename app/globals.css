@@ -4,26 +4,25 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated to cleaner, more minimal Upwork-style colors */
-  --background: oklch(1 0 0); /* Pure white like Upwork */
-  --foreground: oklch(0.15 0 0); /* Darker text for better contrast */
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.2 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0 0);
+  --card-foreground: oklch(0.2 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0 0);
-  /* Upwork green #14A800 */
+  --popover-foreground: oklch(0.2 0 0);
+  /* Updated primary to Upwork green #14A800 */
   --primary: oklch(0.62 0.19 145);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0 0); /* Lighter gray */
-  --secondary-foreground: oklch(0.15 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.45 0 0); /* Medium gray for muted text */
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.15 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.2 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.2 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0 0); /* Subtle borders */
-  --input: oklch(0.9 0 0);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.92 0 0);
   --ring: oklch(0.62 0.19 145);
   --chart-1: oklch(0.62 0.19 145);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -31,13 +30,13 @@
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.5rem;
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.15 0 0);
+  --sidebar: oklch(0.99 0 0);
+  --sidebar-foreground: oklch(0.2 0 0);
   --sidebar-primary: oklch(0.62 0.19 145);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.15 0 0);
-  --sidebar-border: oklch(0.9 0 0);
+  --sidebar-accent: oklch(0.96 0 0);
+  --sidebar-accent-foreground: oklch(0.2 0 0);
+  --sidebar-border: oklch(0.92 0 0);
   --sidebar-ring: oklch(0.62 0.19 145);
 }
 
@@ -48,6 +47,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.18 0 0);
   --popover-foreground: oklch(0.985 0 0);
+  /* Updated dark mode primary to brighter Upwork green */
   --primary: oklch(0.68 0.19 145);
   --primary-foreground: oklch(0.1 0 0);
   --secondary: oklch(0.25 0 0);
@@ -77,9 +77,8 @@
 }
 
 @theme inline {
-  /* Using Inter font for Upwork-style typography */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, monospace;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
